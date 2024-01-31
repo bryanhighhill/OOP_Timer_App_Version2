@@ -1,0 +1,297 @@
+declare auto TimerApp app!
+app! = new TimerApp()
+app!.run()
+end
+
+class public TimerApp
+    field protected BBjSysGui           sysgui!
+    field protected BBjWebManager       webManager!
+    
+    REM 'Windows'
+    field protected BBjTopLevelWindow   winMain!
+    field protected BBjChildWindow      winInput!
+    field protected BBjChildWindow      winBtn!
+    field protected BBjChildWindow      winClock!
+    field protected BBjChildWindow      winTimerColorIndicator!
+    field protected BBjChildWindow      winClockRight!
+    field protected BBjChildWindow      winClockLeft!
+    field protected BBjChildWindow      winClockFace!
+    field protected BBjChildWindow      winTimeIndicator!
+
+    REM 'Time variables'
+    field protected BBjNumber           hours!
+    field protected BBjNumber           minutes!
+    field protected BBjNumber           seconds!
+    field protected BBjNumber           totalTimeInSec!
+    field protected BBjNumber           halfTime!
+    field protected BBjString           totalTimeString!
+    field protected BBjString           halfTimeString! 
+    
+    REM 'Buttons & Inputs'
+    field protected BBjInputNSpinner    hoursInput!
+    field protected BBjInputNSpinner    minutesInput!
+    field protected BBjInputNSpinner    secondsInput!
+    field protected BBjButton           startBtn!
+    field protected BBjButton           pauseBtn!
+    field protected BBjButton           resumeBtn!
+    field protected BBjButton           cancelBtn!
+    
+    REM 'OTHER'
+    field protected BBjControl          noInputMessage!
+    field protected BBjNumber           winTimeCreated! = 0
+    field protected BBjString           timeRemainingString!
+    field protected BBjControl          timeDisplay!
+    field protected BBjNumber           initialCountDown! = 1
+
+
+
+    
+    
+    REM 'Run timer app'
+    method public void run()
+    
+        #webManager! = BBjAPI().getWebManager()
+        css! = java.nio.file.Files.readAllBytes(java.nio.file.Path.of(dsk("")+dir("")+"stylesheet.css"))
+        #webManager!.injectStyle(css!, 0, "name=stylesheet_css")
+    
+        rem Create UI
+        #sysgui! = BBjAPI().openSysGui("X0")
+        #createAppUI()
+        process_events
+        
+    methodend
+    
+    
+    REM 'create main app UI'
+    method public void createAppUI()
+    
+        REM 'main window'
+        title$ = "DWC Countdown Timer"
+        #winMain! = #sysgui!.addWindow(title$, $01111000$)
+        #winMain!.addClass("winMain")
+        
+        REM 'child windows'
+        #winInput! = #winMain!.addChildWindow("", $00108800$, #sysgui!.getAvailableContext())
+        #winInput!.addClass("winInput")
+        #winBtn! = #winMain!.addChildWindow("", $00108800$, #sysgui!.getAvailableContext())
+        #winBtn!.addClass("winBtn")
+        
+        REM 'inputs'
+        #hoursInput! = #winInput!.addInputNSpinner($0020$, "##", 0, 23)
+        #hoursInput!.addClass("input-spinner")
+        #hoursInput!.setAttribute("label", "Hours")
+        #minutesInput! = #winInput!.addInputNSpinner($0020$, "##", 0, 59)
+        #minutesInput!.addClass("input-spinner")
+        #minutesInput!.setAttribute("label", "Minutes")
+        #secondsInput! = #winInput!.addInputNSpinner($0020$, "##", 0, 59)
+        #secondsInput!.addClass("input-spinner")
+        #secondsInput!.setAttribute("label", "Seconds") 
+        
+        REM 'buttons'
+        rem 'start'
+        #startBtn! = #winBtn!.addButton("Start")
+        #startBtn!.setNoEdge(1)
+        #startBtn!.addClass("start-button")
+        
+        rem 'resume'
+        #resumeBtn! = #winBtn!.addButton("Resume")
+        #resumeBtn!.setNoEdge(1)
+        #resumeBtn!.addClass("resume-button")
+        #resumeBtn!.setVisible(0)
+        
+        rem 'pause button'
+        #pauseBtn! = #winBtn!.addButton("Pause")
+        #pauseBtn!.setNoEdge(1)
+        #pauseBtn!.addClass("pause-button")
+        #pauseBtn!.setVisible(0)
+        
+        rem 'cancel button'
+        #cancelBtn! = #winBtn!.addButton("Cancel")
+        #cancelBtn!.setNoEdge(1)
+        #cancelBtn!.addClass("cancel-button")
+        #cancelBtn!.setVisible(0)
+
+        REM 'callbacks'
+        #winMain!.setCallback(#winMain!.ON_CLOSE,"eoj")
+        #startBtn!.setCallback(#startBtn!.ON_BUTTON_PUSH, #this!, "onStart")
+        #resumeBtn!.setCallback(#resumeBtn!.ON_BUTTON_PUSH, #this!, "onResume")
+        #pauseBtn!.setCallback(#pauseBtn!.ON_BUTTON_PUSH, #this!, "onPause")
+        #cancelBtn!.setCallback(#cancelBtn!.ON_BUTTON_PUSH, #this!, "onCancel")
+
+    methodend
+    
+    
+    REM 'START TIMER METHOD'
+    method public void onStart(BBjButtonPushEvent e!)
+        #hours! = #hoursInput!.getValue()
+        #minutes! = #minutesInput!.getValue()
+        #seconds! = #secondsInput!.getValue()
+
+        REM 'variables used for repeat timer function'
+REM         #initialHours! = #hours!
+REM         #initialMinutes! = #minutes!
+REM         #initialSeconds! = #seconds!
+        
+        REM 'check to see if user inputted any time then start timer'
+        if (#hours! = 0) AND (#minutes! = 0) AND (#seconds! = 0) then
+            #noInputMessage! = msgbox("No Time Selected", 0 + 48, "Start Timer Error")
+            return
+        else
+            #startBtn!.setVisible(0)
+            #pauseBtn!.setVisible(1)
+            #cancelBtn!.setVisible(1)
+            #winInput!.setVisible(0)
+            
+            REM 'time variables for clock css animations'
+            #totalTimeInSec! = (#hours! *  3600) + (#minutes! * 60) + (#seconds!)
+            #halfTime! = #totalTimeInSec! / 2
+            #totalTimeString! = STR(#totalTimeInSec!)
+            #halfTimeString! = STR(#halfTime!) 
+    
+            REM 'UI'
+            #winClock! = #winMain!.addChildWindow("", $00108800$, #sysgui!.getAvailableContext())
+            #winClock!.addClass("clock-container")
+        
+            #winTimerColorIndicator! = #winClock!.addChildWindow("", $00108800$, #sysgui!.getAvailableContext())
+            #winTimerColorIndicator!.addClass("timer-color-indicator")
+        
+            #winClockRight! = #winTimerColorIndicator!.addChildWindow("", $00108800$, #sysgui!.getAvailableContext())
+            #winClockRight!.addClass("clock-right")
+            #winClockRight!.addClass("clock-rotate-end")
+            
+            #webManager! = BBjAPI().getWebManager()
+            #webManager!.injectStyle(".clock-rotate-end { "+
+:               "animation-delay: " + #halfTimeString! + "s !important;"+
+:               "animation-duration: " + #halfTimeString! + "s !important;"+
+:           "}")
+        
+            #winClockLeft! = #winTimerColorIndicator!.addChildWindow("", $00108800$, #sysgui!.getAvailableContext())
+            #winClockLeft!.setBorderColor(#sysgui!.makeColor(250, 250, 250, 0))
+            #winClockLeft!.addClass("clock-left")
+            #winClockLeft!.addClass("clock-rotate-start")
+            
+            #webManager!.injectStyle(".clock-rotate-start { "+
+:               "animation-delay: 0s, " + #halfTimeString! + "s !important;"+
+:               "animation-duration: " + #halfTimeString! + "s, 0s !important;"+
+:           "}")
+            
+            #winClockFace! = #winTimerColorIndicator!.addChildWindow("", $00108800$, #sysgui!.getAvailableContext())
+            #winClockFace!.addClass("clock-face")     
+            
+            #winTimeIndicator! = #winClockFace!.addChildWindow("", $00108800$, #sysgui!.getAvailableContext())
+            #winTimeIndicator!.addClass("time-indicator-window")
+            
+            if (#initialCountDown! = 0) then
+                #calculateTime(#hours!, #minutes!, #seconds!)
+            else
+                #displayTime(#hours!, #minutes!, #seconds!)
+            endif      
+        endif
+    methodend
+    
+    
+    method public void calculateTime(BBjNumber hours!, BBjNumber minutes!, BBjNumber seconds!) 
+        #hours! = hours!
+        #minutes! = minutes!
+        #seconds = seconds!
+       
+        if (#seconds! > 0) then #seconds! = #seconds! - 1
+        
+        if (#seconds!= 0) AND (#minutes! > 0) then 
+            #minutes! = #minutes! - 1
+            #seconds! = 59
+        endif
+        
+        if (#seconds!= 0) AND (#minutes! = 0) AND (#hours! > 0) then
+            #hours! = #hours! - 1
+            #minutes! = 59
+            #seconds! = 59
+        endif
+        
+        #displayTime(#hours!, #minutes!, #seconds!)
+        
+    methodend
+    
+    
+    method public void displayTime(BBjNumber hours!, BBjNumber minutes!, BBjNumber seconds!)
+        if (#initialCountDown!= 0) then 
+            #timeDisplay!.setVisible(0)
+        else
+            #initialCountDown! = 0
+        endif
+        
+        #hours!= hours!
+        #minutes! = minutes!
+        #seconds! = seconds!
+        
+        REM 'format time for clock display'
+        if (#hours! > 0) then #timeRemainingString! = STR(#hours!: "00") + " : " + STR(#minutes!: "00") + " : " + STR(#seconds!: "00")
+        if (#hours! = 0) AND (#minutes! > 0) then #timeRemainingString! = STR(#minutes!: "00") + " : " + STR(#seconds!: "00")
+        if (#hours! = 0) AND (#minutes! = 0) AND (#seconds! >= 0) then #timeRemainingString! = " : " + STR(#seconds!: "00")         
+    
+        #timeDisplay! = #winTimeIndicator!.addStaticText(#timeRemainingString!)
+        #timeDisplay!.addClass("time-indicator")
+        
+REM         if (#hours! > 0) OR (#minutes!> 0) OR (#seconds!> 0) then Thread.sleep(1000)
+        
+        #calculateTime(#hours!, #minutes!, #seconds!)
+    methodend
+    
+    
+    
+       
+    REM 'PAUSE TIMER METHOD'
+    method public void onPause(BBjButtonPushEvent e!)
+        
+    methodend
+
+
+    REM 'RESUME TIMER METHOD'
+    method public void onResume(BBjButtonPushEvent e!)
+        
+    methodend
+    
+    
+    REM 'CANCEL TIMER METHOD'
+    method public void onCancel(BBjButtonPushEvent e!)
+        i = msgbox("you clicked cancel timer")
+    methodend
+
+    REM 'WINDOW CLOSE METHOD'
+    method public void eoj()
+    methodend
+    
+    
+    
+REM     
+REM     
+REM     
+REM     
+REM     constructor CountDownTimer(hours!, minutes!, seconds!)
+REM         this.hours! = #hours!
+REM         this.minutes! = #minutes!
+REM         this.seconds! = #seconds!
+REM         
+REM     event listeners
+REM         start ON_BUTTON_PUSH
+REM         pause ON_BUTTON_PUSH
+REM         stop ON_BUTTON_PUSH
+REM         
+REM     method run()
+REM         create ui
+REM         process_events
+REM         
+REM     method calculateTimeRemaining(totalTimeInMs)
+REM         loop - i = total time; i >= 0; i--
+REM         call method to display time(hoursRemaining, minutesRemaining, secondsRemaining)
+REM         add onesecondtimer
+REM         
+REM         
+REM     method displayTime(hoursRemaining, minutesRemaining, secondsRemaining)
+REM         display time in proper format - hh:mm:ss
+REM     
+    classend
+    
+    
+    use java.lang.Thread
+    

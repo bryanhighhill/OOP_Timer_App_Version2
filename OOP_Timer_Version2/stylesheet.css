@@ -1,0 +1,232 @@
+/* -------------------------------------------- main window */
+.winMain {
+	background-color: black;
+}
+
+.winMain .BBjPanel {
+	height: 100%;
+	width: 100%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+
+/* -------------------------------------------- inputs */
+.winInput {
+	background-color: rgba(255, 255, 255, .15);
+	border-radius: 15px;
+	display: inline-block;
+	padding: 30px;
+}
+
+.input-spinner .BBjControl::part(input-wrapper) {
+	background-color: rgba(255, 255, 255, 0);
+	border: none;
+	color: rgb(179, 177, 177);
+	font-size: 45px;
+	width: 200px;
+	text-align: center !important;
+}
+
+.input-spinner .BBjControl::part(label) {
+	color: white;
+	font-size: 20px;
+	font-weight: 600;
+	padding-left: 10px;
+	padding-right: 10px;
+}
+
+
+/* -------------------------------------------- buttons */ 
+.winBtn {
+	bottom: 0;
+	display: flex;
+	justify-content: center;
+	padding-bottom: 80px;
+	position: absolute;
+	width: 100%;
+}
+
+/* start */
+.start-button::part(control) {
+	aspect-ratio: 1 / 1;
+	background-color: rgba(82, 255, 82, 0.2);
+	border-radius: 50%;
+	color: rgb(82, 255, 82);
+	font-size: 19px;
+	width: 100px;
+}
+
+.start-button::part(control):hover {
+	background-color: rgba(82, 255, 82, 0.4);
+}
+
+/* pause */
+.pause-button::part(control) {
+	aspect-ratio: 1 / 1;
+	background-color: rgba(252, 163, 56, 0.2);
+	border-radius: 50%;
+	color: rgb(252, 163, 56);
+	font-size: 19px;
+	margin-right: 50px;
+	width: 100px;
+}
+
+.pause-button::part(control):hover {
+	background-color: rgba(252, 163, 56, 0.4);
+}
+
+/* cancel */
+.cancel-button::part(control) {
+	aspect-ratio: 1 / 1;
+	background-color: rgba(255, 255, 255, .15);	
+	border-radius: 50%;
+	color: rgb(255, 255, 255);
+	font-size: 19px;
+	margin-left: 50px;
+	width: 100px;
+}
+
+.cancel-button::part(control):hover {
+	background-color: rgba(255, 255, 255, 0.4);
+}
+
+/* resume */
+.resume-button::part(control) {
+	aspect-ratio: 1 / 1;
+	background-color: rgba(82, 255, 82, 0.2);
+	border-radius: 50%;
+	color: rgb(82, 255, 82);
+	font-size: 19px;
+	margin-right: 50px;
+	width: 100px;
+}
+
+.resume-button::part(control):hover {
+	background-color: rgba(82, 255, 82, 0.4);
+}
+
+
+/* -------------------------------------------- clock interface */
+.clock-container {
+	display: flex;
+	height: 70%;
+	justify-content: center;
+	margin-bottom: 30px;
+	margin-top: 50px;
+	min-width: 690px; 
+	position: absolute;
+	top: 0;
+	width: 100%;
+}
+
+.timer-color-indicator {
+	align-items: center;
+	aspect-ratio: 1 / 1;
+	background-color: rgb(74, 74, 74);
+ 	border: none;
+	border-radius: 50%;
+	display: flex;
+	justify-content: center;
+}
+
+.clock-face {
+	aspect-ratio: 1 / 1;
+	background-color: black;
+	border-radius: 50%;
+	width: 98%;
+	display: flex;
+}
+
+.clock-right {
+	aspect-ratio: 1 / 1;
+	background-color: rgb(252, 163, 56);
+	border-radius: 50% 50% 0 0;
+	clip-path: polygon(0 0, 100% 0, 100% 50%, 0 50%);
+	position: absolute;
+	transform: rotate(90deg);
+	width: 100%;
+}
+
+.clock-left {
+ 	aspect-ratio: 1 / 1;
+	background-color: rgb(252, 163, 56);
+	border-radius: 50% 50% 0 0;
+	clip-path: polygon(0 0, 100% 0, 100% 50%, 0 50%);
+	position: absolute;
+	transform: rotate(-90deg);
+	width: 100%;	
+}
+
+.clock-rotate-start {
+	animation: rotate-left-start, clock-left-change-color;
+	/* animation-delay: 0s, 10s; */
+	/*could use css variable instead - using same structure as animation-duration --animation-duration; */
+	/* animation-duration: 10s, 0s; */
+	animation-fill-mode: none, forwards;
+	animation-timing-function: linear;
+}
+
+.clock-rotate-end {
+	animation: rotate-left-end;
+	/* animation-delay: 10s;
+	animation-duration: 10s; */
+	animation-fill-mode: forwards;
+	animation-timing-function: linear;
+}
+
+/* .clock-window {
+	align-items: center;
+	aspect-ratio: 1 / 1;
+	background-color: rgb(74, 74, 74);
+	border: none;
+	border-radius: 50%;
+	display: flex;
+	min-width: 700px;
+	justify-content: center;
+} */
+
+.time-indicator-window {
+/* 	background-color: red; */
+	aspect-ratio: 1 / 1;
+	align-items: center;
+	/* position: absolute; */
+}
+
+.time-indicator {
+	align-items: center;
+	aspect-ratio: 1 / 1;
+	color: white;
+	display: flex;
+	font-size: 100px;
+	font-weight: 200;
+	justify-content: center;
+}
+
+@keyframes rotate-left-start {
+	from {
+		transform: rotate(-90deg);
+	}
+	to {
+		transform: rotate(-270deg);
+	}
+}
+
+@keyframes rotate-left-end {
+	from {
+		transform: rotate(90deg)
+	}
+	to {
+		transform: rotate(-90deg)
+	}
+}
+
+@keyframes clock-left-change-color {
+	from {
+		background-color: black;
+	}
+	to {
+		background-color: rgb(74, 74, 74);	
+	}
+}
