@@ -42,7 +42,7 @@ class public TimerApp
     REM 'OTHER'
     field protected BBjControl          noInputMessage!
     field protected BBjNumber           endOfTimerMessage
-    field protected BBjNumber           winTimeCreated! = 0
+REM     field protected BBjNumber           winTimeCreated! = 0
     field protected BBjString           timeRemainingString!
     field protected BBjControl          timeDisplay!
     field protected BBjNumber           initialCountDown! = 1
@@ -126,7 +126,7 @@ class public TimerApp
         #startBtn!.setCallback(#startBtn!.ON_BUTTON_PUSH, #this!, "onStart")
         #resumeBtn!.setCallback(#resumeBtn!.ON_BUTTON_PUSH, #this!, "onResume")
         #pauseBtn!.setCallback(#pauseBtn!.ON_BUTTON_PUSH, #this!, "onPause")
-REM         #cancelBtn!.setCallback(#cancelBtn!.ON_BUTTON_PUSH, #this!, "eoj")
+        #cancelBtn!.setCallback(#cancelBtn!.ON_BUTTON_PUSH, #this!, "eoj")
 
     methodend
     
@@ -206,12 +206,12 @@ REM             endif
        
         if (#seconds! > 0) then #seconds! = #seconds! - 1
         
-        if (#seconds!= 0) AND (#minutes! > 0) then 
+        if (#seconds! = 0) AND (#minutes! > 0) then 
             #minutes! = #minutes! - 1
             #seconds! = 59
         endif
         
-        if (#seconds!= 0) AND (#minutes! = 0) AND (#hours! > 0) then
+        if (#seconds! = 0) AND (#minutes! = 0) AND (#hours! > 0) then
             #hours! = #hours! - 1
             #minutes! = 59
             #seconds! = 59
@@ -229,9 +229,9 @@ REM             endif
             #initialCountDown! = 0
         endif
         
-        #hours! = hours!
-        #minutes! = minutes!
-        #seconds! = seconds!
+REM         #hours! = hours!
+REM         #minutes! = minutes!
+REM         #seconds! = seconds!
         
         REM 'format time for clock display'
         if (#hours! > 0) then #timeRemainingString! = STR(#hours!: "00") + " : " + STR(#minutes!: "00") + " : " + STR(#seconds!: "00")
@@ -243,25 +243,31 @@ REM             endif
         
         if (#hours! = 0) AND (#minutes! = 0) AND (#seconds! = 0) then
 REM             'option to repeat timer or cancel and go back to start'
-            endOfTimerMessage! = msgbox("Repeat Timer?", 4 + 32 + 0 + 0, "Time's Up!")
+            #endOfTimerMessage = msgbox("Repeat Timer?", 4 + 32 + 0 + 0, "Time's Up!")
 REM             i = msgbox("end of timer")
         endif
 REM         
         rem 'yes'
         if (#endOfTimerMessage = 6) then
-REM             #hoursInput!.setValue(#initialHours!)
-REM             #minutesInput!.setValue(#initialMinutes!)
-REM             #secondsInput!.setValue(#initialSeconds!)
-            #displayTime(#initialHours!, #initialMinutes!, #initialSeconds!)
+            #hoursInput!.setValue(#initialHours!)
+            #minutesInput!.setValue(#initialMinutes!)
+            #secondsInput!.setValue(#initialSeconds!)
+            #initialCountDown! = 1
+            #onStart(e!)
         endif
         
         rem 'no'
         if (#endOfTimerMessage = 7) then
-            #eoj()
+            #eoj(e!)
         endif  
      
         #calculateTime(#hours!, #minutes!, #seconds!)
     methodend 
+    
+REM     method public void onRepeat(BBjButtonPushEvent e!)
+REM         
+REM     methodend
+REM     
        
     REM 'PAUSE TIMER METHOD'
     method public void onPause(BBjButtonPushEvent e!)
@@ -281,7 +287,7 @@ REM         #endOfJob()
 REM     methodend
 
     REM 'WINDOW CLOSE METHOD'
-    method public void eoj()
+    method public void eoj(BBjButtonPushEvent e!)
         release
     methodend
     
