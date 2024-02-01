@@ -58,6 +58,12 @@ class public TimerApp
         css! = java.nio.file.Files.readAllBytes(java.nio.file.Path.of(dsk("")+dir("")+"stylesheet.css"))
         #webManager!.injectStyle(css!, 0, "name=stylesheet_css")
     
+        REM 'set action when app ends - refresh page'
+        REM '.urlAction() - constructs a BBjBuiUrlCloseAction object to load a specified URL'
+        REM '.getUrl() - returns URL of current page'
+        refresh! = #webManager!.urlAction(#webManager!.getUrl())
+        #webManager!.setEndAction(refresh!)
+        
         rem Create UI
         #sysgui! = BBjAPI().openSysGui("X0")
         #createAppUI()
@@ -276,11 +282,6 @@ REM     methodend
 
     REM 'WINDOW CLOSE METHOD'
     method public void eoj()
-        REM 'set action when app ends - refresh page'
-        REM '.urlAction() - constructs a BBjBuiUrlCloseAction object to load a specified URL'
-        REM '.getUrl() - returns URL of current page'
-        refresh! = #webManager!.urlAction(#webManager!.getUrl())
-        #webManager!.setEndAction(refresh!)
         release
     methodend
     
