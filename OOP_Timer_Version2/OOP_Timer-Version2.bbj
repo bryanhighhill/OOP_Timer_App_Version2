@@ -49,7 +49,6 @@ class public TimerApp
     
     REM 'RUN TIMER APP'
     method public void run()
-    
         #webManager! = BBjAPI().getWebManager()
         css! = java.nio.file.Files.readAllBytes(java.nio.file.Path.of(dsk("")+dir("")+"stylesheet.css"))
         #webManager!.injectStyle(css!, 0, "name=stylesheet_css")
@@ -64,14 +63,12 @@ class public TimerApp
         #sysgui! = BBjAPI().openSysGui("X0")
         #createAppUI()
         
-        process_events
-        
+        process_events  
     methodend
     
     
     REM 'CREATE MAIN APP UI'
     method public void createAppUI()
-    
         REM 'MAIN WINDOW'
         title$ = "DWC Countdown Timer"
         #winMain! = #sysgui!.addWindow(title$, $01111000$)
@@ -124,7 +121,6 @@ class public TimerApp
         #resumeBtn!.setCallback(#resumeBtn!.ON_BUTTON_PUSH, #this!, "onResume")
         #pauseBtn!.setCallback(#pauseBtn!.ON_BUTTON_PUSH, #this!, "onPause")
         #cancelBtn!.setCallback(#cancelBtn!.ON_BUTTON_PUSH, #this!, "onCancel")
-
     methodend
     
     
@@ -187,15 +183,21 @@ REM     'Initial time saved for repeat timer function at end of countdown'
             #winTimeIndicator! = #winClockFace!.addChildWindow("", $00108800$, #sysgui!.getAvailableContext())
             #winTimeIndicator!.addClass("time-indicator-window")
             
+            rem 'Create one second timer'
+            BBjAPI().createTimer("oneSecondTimer", 1, #this!, "onTimerStart")
+            
             #displayTime()
-        endif
-        
+        endif 
+    methodend
+    
+    
+    method public void onTimerStart(BBjTimerEvent timerEvent!)
+        #displayTime()
     methodend
     
     
     REM 'ADD CLOCK DISPLAY OVER TIMER DISPLAY BACKGROUND'
     method public void displayTime()
-    
         REM 'Check if this is first time showing display or not. If no, remove previous display. If yes, move on'
         if (#initialCountDown! = 0) then 
             #timeDisplay!.setVisible(0)
@@ -212,12 +214,11 @@ REM     'Initial time saved for repeat timer function at end of countdown'
         #timeDisplay! = #winTimeIndicator!.addStaticText(#timeRemainingString!)
         #timeDisplay!.addClass("time-indicator")
         
-        REM 'When time is up, check if user wants to repeat timer' - should this be a seperate method?
+        REM 'When time is up, check if user wants to repeat timer' - SHOULD THIS BE ITS' OWN METHOD? ==============================
         if (#hours! = 0) AND (#minutes! = 0) AND (#seconds! = 0) then
             #endOfTimerMessage = msgbox("Repeat Timer?", 4 + 32 + 0 + 0, "Time's Up!")
         
-REM         
-            rem 'Yes, repeat'
+            rem 'Yes, repeat' - NEEDS TO CALL ONSTART METHOD, NOT CALCULATE TIME =============================
             if (#endOfTimerMessage = 6) then
 REM             #hoursInput!.setValue(#initialHours!)
 REM             #minutesInput!.setValue(#initialMinutes!)
@@ -226,23 +227,20 @@ REM             #initialCountDown! = 1
                 #hours! = #initialHours!
                 #minutes! = #initialMinutes!
                 #seconds!= #initialSeconds!
-                endif
-        
-                rem 'No, don't repeat'
-                if (#endOfTimerMessage = 7) then
-                    #eoj()
-                endif  
             endif
         
-        WAIT 1
-        #calculateTime()
+            rem 'No, don't repeat'
+            if (#endOfTimerMessage = 7) then
+                #eoj()
+            endif  
+        endif
         
+        #calculateTime()      
     methodend 
     
     
     REM 'COUNTDOWN MATH' 
-    method public void calculateTime() 
-    
+    method public void calculateTime()   
         BBjAPI().getWebManager().executeScript("console.log('in calculateTime() with h/m/s = " + str(#hours!) + "/" + str(#minutes!) + "/" + str(#seconds!) + "');")
        
         REM 'If there are seconds, subtract one from total seconds'
@@ -259,27 +257,41 @@ REM             #initialCountDown! = 1
             #hours! = #hours! - 1
             #minutes! = 59
             #seconds! = 59
-        endif
-        
-        #displayTime()
-        
+        endif       
     methodend
-    
-    
-REM     method public void onRepeat(BBjButtonPushEvent e!)
-REM         
-REM     methodend
-REM     
+  
        
     REM 'PAUSE TIMER METHOD'
     method public void onPause(BBjButtonPushEvent e!)
+        rem 'Remove timer'
+        BBjAPI().removeTimer("oneSecondTimer")
         
+        rem 'Pause css animations'
+        pauseAnimationStart! = ".clock-rotate-start { animation-play-state: paused !important; }"
+        pauseAnimationEnd! = ".clock-rotate-end { animation-play-state: paused !important; }"
+        #webManager!.injectStyle(pauseAnimationStart!)
+        #webManager!.injectStyle(pauseAnimationEnd!)
+        
+        rem 'Hide pause button, show resume button'
+        #pauseBtn!.setVisible(0)
+        #resumeBtn!.setVisible(1)
     methodend
 
 
     REM 'RESUME TIMER METHOD'
     method public void onResume(BBjButtonPushEvent e!)
+        rem 'Add one second timer'
+        BBjAPI().createTimer("oneSecondTimer", 1, #this!, "onTimerStart")
         
+        rem 'Resume css animations'
+        resumeAnimationStart! = ".clock-rotate-start { animation-play-state: running !important; }"
+        resumeAnimationEnd! = ".clock-rotate-end { animation-play-state: running !important; }"
+        #webManager!.injectStyle(resumeAnimationStart!)
+        #webManager!.injectStyle(resumeAnimationEnd!)
+        
+        rem 'Hide resume button, show pause button'
+        #pauseBtn!.setVisible(1)
+        #resumeBtn!.setVisible(0)
     methodend
     
     
