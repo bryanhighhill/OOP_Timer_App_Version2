@@ -45,10 +45,7 @@ class public TimerApp
     field protected BBjString           timeRemainingString!
     field protected BBjControl          timeDisplay!
     field protected BBjNumber           initialCountDown! = 1
-
-
-
-    
+  
     
     REM 'RUN TIMER APP'
     method public void run()
@@ -218,29 +215,28 @@ REM     'Initial time saved for repeat timer function at end of countdown'
         REM 'When time is up, check if user wants to repeat timer' - should this be a seperate method?
         if (#hours! = 0) AND (#minutes! = 0) AND (#seconds! = 0) then
             #endOfTimerMessage = msgbox("Repeat Timer?", 4 + 32 + 0 + 0, "Time's Up!")
-        endif
-REM         
-        rem 'Yes, repeat'
-        if (#endOfTimerMessage = 6) then
-REM         #hoursInput!.setValue(#initialHours!)
-REM         #minutesInput!.setValue(#initialMinutes!)
-REM         #secondsInput!.setValue(#initialSeconds!)
-REM         #initialCountDown! = 1
-            #hours! = #initialHours!
-            #minutes! = #initialMinutes!
-            #seconds!= #initialSeconds!
-            #initialCountDown! = 1  
-            #onStart(e!)  
-        endif
         
-        rem 'No, don't repeat'
-        if (#endOfTimerMessage = 7) then
-            #eoj()
-        endif  
+REM         
+            rem 'Yes, repeat'
+            if (#endOfTimerMessage = 6) then
+REM             #hoursInput!.setValue(#initialHours!)
+REM             #minutesInput!.setValue(#initialMinutes!)
+REM             #secondsInput!.setValue(#initialSeconds!)
+REM             #initialCountDown! = 1
+                #hours! = #initialHours!
+                #minutes! = #initialMinutes!
+                #seconds!= #initialSeconds!
+                endif
+        
+                rem 'No, don't repeat'
+                if (#endOfTimerMessage = 7) then
+                    #eoj()
+                endif  
+            endif
         
         WAIT 1
         #calculateTime()
-       
+        
     methodend 
     
     
