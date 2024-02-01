@@ -40,9 +40,8 @@ class public TimerApp
     field protected BBjButton           cancelBtn!
     
     REM 'OTHER'
-    field protected BBjControl          noInputMessage!
+    field protected BBjNumber           noInputMessage
     field protected BBjNumber           endOfTimerMessage
-REM     field protected BBjNumber           winTimeCreated! = 0
     field protected BBjString           timeRemainingString!
     field protected BBjControl          timeDisplay!
     field protected BBjNumber           initialCountDown! = 1
@@ -51,7 +50,7 @@ REM     field protected BBjNumber           winTimeCreated! = 0
 
     
     
-    REM 'Run timer app'
+    REM 'RUN TIMER APP'
     method public void run()
     
         #webManager! = BBjAPI().getWebManager()
@@ -67,26 +66,27 @@ REM     field protected BBjNumber           winTimeCreated! = 0
         rem Create UI
         #sysgui! = BBjAPI().openSysGui("X0")
         #createAppUI()
+        
         process_events
         
     methodend
     
     
-    REM 'create main app UI'
+    REM 'CREATE MAIN APP UI'
     method public void createAppUI()
     
-        REM 'main window'
+        REM 'MAIN WINDOW'
         title$ = "DWC Countdown Timer"
         #winMain! = #sysgui!.addWindow(title$, $01111000$)
         #winMain!.addClass("winMain")
         
-        REM 'child windows'
+        REM 'CHILD WINDOWS'
         #winInput! = #winMain!.addChildWindow("", $00108800$, #sysgui!.getAvailableContext())
         #winInput!.addClass("winInput")
         #winBtn! = #winMain!.addChildWindow("", $00108800$, #sysgui!.getAvailableContext())
         #winBtn!.addClass("winBtn")
         
-        REM 'inputs'
+        REM 'INPUTS'
         #hoursInput! = #winInput!.addInputNSpinner($0020$, "##", 0, 23)
         #hoursInput!.addClass("input-spinner")
         #hoursInput!.setAttribute("label", "Hours")
@@ -97,7 +97,7 @@ REM     field protected BBjNumber           winTimeCreated! = 0
         #secondsInput!.addClass("input-spinner")
         #secondsInput!.setAttribute("label", "Seconds") 
         
-        REM 'buttons'
+        REM 'BUTTONS'
         rem 'start'
         #startBtn! = #winBtn!.addButton("Start")
         #startBtn!.setNoEdge(1)
@@ -109,55 +109,55 @@ REM     field protected BBjNumber           winTimeCreated! = 0
         #resumeBtn!.addClass("resume-button")
         #resumeBtn!.setVisible(0)
         
-        rem 'pause button'
+        rem 'pause'
         #pauseBtn! = #winBtn!.addButton("Pause")
         #pauseBtn!.setNoEdge(1)
         #pauseBtn!.addClass("pause-button")
         #pauseBtn!.setVisible(0)
         
-        rem 'cancel button'
+        rem 'cancel'
         #cancelBtn! = #winBtn!.addButton("Cancel")
         #cancelBtn!.setNoEdge(1)
         #cancelBtn!.addClass("cancel-button")
         #cancelBtn!.setVisible(0)
 
-        REM 'callbacks'
+        REM 'CALLBACKS'
         #winMain!.setCallback(#winMain!.ON_CLOSE,"eoj")
         #startBtn!.setCallback(#startBtn!.ON_BUTTON_PUSH, #this!, "onStart")
         #resumeBtn!.setCallback(#resumeBtn!.ON_BUTTON_PUSH, #this!, "onResume")
         #pauseBtn!.setCallback(#pauseBtn!.ON_BUTTON_PUSH, #this!, "onPause")
-        #cancelBtn!.setCallback(#cancelBtn!.ON_BUTTON_PUSH, #this!, "eoj")
+        #cancelBtn!.setCallback(#cancelBtn!.ON_BUTTON_PUSH, #this!, "onCancel")
 
     methodend
     
     
-    REM 'START TIMER METHOD'
+    REM 'CREATE TIMER DISPLAY UI'
     method public void onStart(BBjButtonPushEvent e!)
         #hours! = #hoursInput!.getValue()
         #minutes! = #minutesInput!.getValue()
         #seconds! = #secondsInput!.getValue()
 
-REM     'variables used for repeat timer function'
+REM     'Initial time saved for repeat timer function at end of countdown'
         #initialHours! = #hours!
         #initialMinutes! = #minutes!
         #initialSeconds! = #seconds!
         
-        REM 'check to see if user inputted any time then start timer'
+        REM 'Check to see if user inputted any time. In no, issue error. If yes, start timer'
         if (#hours! = 0) AND (#minutes! = 0) AND (#seconds! = 0) then
-            #noInputMessage! = msgbox("No Time Selected", 0 + 48, "Start Timer Error")
+            #noInputMessage = msgbox("No Time Selected", 0 + 48, "Start Timer Error")
         else
             #startBtn!.setVisible(0)
             #pauseBtn!.setVisible(1)
             #cancelBtn!.setVisible(1)
             #winInput!.setVisible(0)
             
-            REM 'time variables for clock css animations'
+            REM 'Time variables used for clock css animations'
             #totalTimeInSec! = (#hours! *  3600) + (#minutes! * 60) + (#seconds!)
             #halfTime! = #totalTimeInSec! / 2
             #totalTimeString! = STR(#totalTimeInSec!)
             #halfTimeString! = STR(#halfTime!) 
     
-            REM 'UI'
+            REM 'UI for time display background & set css animation timing'
             #winClock! = #winMain!.addChildWindow("", $00108800$, #sysgui!.getAvailableContext())
             #winClock!.addClass("clock-container")
         
@@ -190,79 +190,85 @@ REM     'variables used for repeat timer function'
             #winTimeIndicator! = #winClockFace!.addChildWindow("", $00108800$, #sysgui!.getAvailableContext())
             #winTimeIndicator!.addClass("time-indicator-window")
             
-REM             if (#initialCountDown! = 0) then
-REM                 #calculateTime(#hours!, #minutes!, #seconds!)
-REM             else
-                #displayTime(#hours!, #minutes!, #seconds!)
-REM             endif      
+            #displayTime()
         endif
-    methodend
-    
-    
-    method public void calculateTime(BBjNumber hours!, BBjNumber minutes!, BBjNumber seconds!) 
-        #hours! = hours!
-        #minutes! = minutes!
-        #seconds! = seconds!
-       
-        if (#seconds! > 0) then #seconds! = #seconds! - 1
-        
-        if (#seconds! = 0) AND (#minutes! > 0) then 
-            #minutes! = #minutes! - 1
-            #seconds! = 59
-        endif
-        
-        if (#seconds! = 0) AND (#minutes! = 0) AND (#hours! > 0) then
-            #hours! = #hours! - 1
-            #minutes! = 59
-            #seconds! = 59
-        endif
-        
-        #displayTime(#hours!, #minutes!, #seconds!)
         
     methodend
     
     
-    method public void displayTime(BBjNumber hours!, BBjNumber minutes!, BBjNumber seconds!)
+    REM 'ADD CLOCK DISPLAY OVER TIMER DISPLAY BACKGROUND'
+    method public void displayTime()
+    
+        REM 'Check if this is first time showing display or not. If no, remove previous display. If yes, move on'
         if (#initialCountDown! = 0) then 
             #timeDisplay!.setVisible(0)
         else
             #initialCountDown! = 0
         endif
         
-REM         #hours! = hours!
-REM         #minutes! = minutes!
-REM         #seconds! = seconds!
-        
-        REM 'format time for clock display'
+        REM 'Format time for clock display'
         if (#hours! > 0) then #timeRemainingString! = STR(#hours!: "00") + " : " + STR(#minutes!: "00") + " : " + STR(#seconds!: "00")
         if (#hours! = 0) AND (#minutes! > 0) then #timeRemainingString! = STR(#minutes!: "00") + " : " + STR(#seconds!: "00")
         if (#hours! = 0) AND (#minutes! = 0) AND (#seconds! >= 0) then #timeRemainingString! = " : " + STR(#seconds!: "00")         
-    
+ 
+        REM 'Add formatted time to dom'
         #timeDisplay! = #winTimeIndicator!.addStaticText(#timeRemainingString!)
         #timeDisplay!.addClass("time-indicator")
         
+        REM 'When time is up, check if user wants to repeat timer' - should this be a seperate method?
         if (#hours! = 0) AND (#minutes! = 0) AND (#seconds! = 0) then
-REM             'option to repeat timer or cancel and go back to start'
             #endOfTimerMessage = msgbox("Repeat Timer?", 4 + 32 + 0 + 0, "Time's Up!")
-REM             i = msgbox("end of timer")
         endif
 REM         
-        rem 'yes'
+        rem 'Yes, repeat'
         if (#endOfTimerMessage = 6) then
-            #hoursInput!.setValue(#initialHours!)
-            #minutesInput!.setValue(#initialMinutes!)
-            #secondsInput!.setValue(#initialSeconds!)
-            #initialCountDown! = 1
-            #onStart(e!)
+REM         #hoursInput!.setValue(#initialHours!)
+REM         #minutesInput!.setValue(#initialMinutes!)
+REM         #secondsInput!.setValue(#initialSeconds!)
+REM         #initialCountDown! = 1
+            #hours! = #initialHours!
+            #minutes! = #initialMinutes!
+            #seconds!= #initialSeconds!
+            #initialCountDown! = 1  
+            #onStart(e!)  
         endif
         
-        rem 'no'
+        rem 'No, don't repeat'
         if (#endOfTimerMessage = 7) then
-            #eoj(e!)
+            #eoj()
         endif  
-     
-        #calculateTime(#hours!, #minutes!, #seconds!)
+        
+        WAIT 1
+        #calculateTime()
+       
     methodend 
+    
+    
+    REM 'COUNTDOWN MATH' 
+    method public void calculateTime() 
+    
+        BBjAPI().getWebManager().executeScript("console.log('in calculateTime() with h/m/s = " + str(#hours!) + "/" + str(#minutes!) + "/" + str(#seconds!) + "');")
+       
+        REM 'If there are seconds, subtract one from total seconds'
+        if (#seconds! > 0) then #seconds! = #seconds! - 1
+        
+        REM 'If there are no seconds but there are minutes, subtract one from total minutes and set seconds to 59'
+        if (#seconds! = 0) AND (#minutes! > 0) then 
+            #minutes! = #minutes! - 1
+            #seconds! = 59
+        endif
+        
+        REM 'If there are no seconds & no minutes, but there are hours, subtract one from total hours, set minutes & seconds to 59'
+        if (#seconds! = 0) AND (#minutes! = 0) AND (#hours! > 0) then
+            #hours! = #hours! - 1
+            #minutes! = 59
+            #seconds! = 59
+        endif
+        
+        #displayTime()
+        
+    methodend
+    
     
 REM     method public void onRepeat(BBjButtonPushEvent e!)
 REM         
@@ -281,45 +287,17 @@ REM
     methodend
     
     
-    REM 'CANCEL TIMER METHOD'
-REM     method public void onCancel(BBjButtonPushEvent e!)
-REM         #endOfJob()
-REM     methodend
+REM 'CANCEL TIMER'
+    method public void onCancel(BBjButtonPushEvent e!)
+        #eoj()
+    methodend
 
     REM 'WINDOW CLOSE METHOD'
-    method public void eoj(BBjButtonPushEvent e!)
+    method public void eoj()
         release
     methodend
     
-    
-    
-REM     
-REM     
-REM     
-REM     
-REM     constructor CountDownTimer(hours!, minutes!, seconds!)
-REM         this.hours! = #hours!
-REM         this.minutes! = #minutes!
-REM         this.seconds! = #seconds!
-REM         
-REM     event listeners
-REM         start ON_BUTTON_PUSH
-REM         pause ON_BUTTON_PUSH
-REM         stop ON_BUTTON_PUSH
-REM         
-REM     method run()
-REM         create ui
-REM         process_events
-REM         
-REM     method calculateTimeRemaining(totalTimeInMs)
-REM         loop - i = total time; i >= 0; i--
-REM         call method to display time(hoursRemaining, minutesRemaining, secondsRemaining)
-REM         add onesecondtimer
-REM         
-REM         
-REM     method displayTime(hoursRemaining, minutesRemaining, secondsRemaining)
-REM         display time in proper format - hh:mm:ss
-REM     
+
     classend
     
     
