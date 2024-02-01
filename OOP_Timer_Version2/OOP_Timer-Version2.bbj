@@ -22,6 +22,9 @@ class public TimerApp
     field protected BBjNumber           hours!
     field protected BBjNumber           minutes!
     field protected BBjNumber           seconds!
+    field protected BBjNumber           initialHours!
+    field protected BBjNumber           initialMinutes!
+    field protected BBjNumber           initialSeconds!
     field protected BBjNumber           totalTimeInSec!
     field protected BBjNumber           halfTime!
     field protected BBjString           totalTimeString!
@@ -38,6 +41,7 @@ class public TimerApp
     
     REM 'OTHER'
     field protected BBjControl          noInputMessage!
+    field protected BBjNumber           endOfTimerMessage
     field protected BBjNumber           winTimeCreated! = 0
     field protected BBjString           timeRemainingString!
     field protected BBjControl          timeDisplay!
@@ -116,7 +120,7 @@ class public TimerApp
         #startBtn!.setCallback(#startBtn!.ON_BUTTON_PUSH, #this!, "onStart")
         #resumeBtn!.setCallback(#resumeBtn!.ON_BUTTON_PUSH, #this!, "onResume")
         #pauseBtn!.setCallback(#pauseBtn!.ON_BUTTON_PUSH, #this!, "onPause")
-        #cancelBtn!.setCallback(#cancelBtn!.ON_BUTTON_PUSH, #this!, "onCancel")
+REM         #cancelBtn!.setCallback(#cancelBtn!.ON_BUTTON_PUSH, #this!, "eoj")
 
     methodend
     
@@ -127,15 +131,14 @@ class public TimerApp
         #minutes! = #minutesInput!.getValue()
         #seconds! = #secondsInput!.getValue()
 
-        REM 'variables used for repeat timer function'
-REM         #initialHours! = #hours!
-REM         #initialMinutes! = #minutes!
-REM         #initialSeconds! = #seconds!
+REM     'variables used for repeat timer function'
+        #initialHours! = #hours!
+        #initialMinutes! = #minutes!
+        #initialSeconds! = #seconds!
         
         REM 'check to see if user inputted any time then start timer'
         if (#hours! = 0) AND (#minutes! = 0) AND (#seconds! = 0) then
             #noInputMessage! = msgbox("No Time Selected", 0 + 48, "Start Timer Error")
-            return
         else
             #startBtn!.setVisible(0)
             #pauseBtn!.setVisible(1)
@@ -181,11 +184,11 @@ REM         #initialSeconds! = #seconds!
             #winTimeIndicator! = #winClockFace!.addChildWindow("", $00108800$, #sysgui!.getAvailableContext())
             #winTimeIndicator!.addClass("time-indicator-window")
             
-            if (#initialCountDown! = 0) then
-                #calculateTime(#hours!, #minutes!, #seconds!)
-            else
+REM             if (#initialCountDown! = 0) then
+REM                 #calculateTime(#hours!, #minutes!, #seconds!)
+REM             else
                 #displayTime(#hours!, #minutes!, #seconds!)
-            endif      
+REM             endif      
         endif
     methodend
     
@@ -193,7 +196,7 @@ REM         #initialSeconds! = #seconds!
     method public void calculateTime(BBjNumber hours!, BBjNumber minutes!, BBjNumber seconds!) 
         #hours! = hours!
         #minutes! = minutes!
-        #seconds = seconds!
+        #seconds! = seconds!
        
         if (#seconds! > 0) then #seconds! = #seconds! - 1
         
@@ -214,13 +217,13 @@ REM         #initialSeconds! = #seconds!
     
     
     method public void displayTime(BBjNumber hours!, BBjNumber minutes!, BBjNumber seconds!)
-        if (#initialCountDown!= 0) then 
+        if (#initialCountDown! = 0) then 
             #timeDisplay!.setVisible(0)
         else
             #initialCountDown! = 0
         endif
         
-        #hours!= hours!
+        #hours! = hours!
         #minutes! = minutes!
         #seconds! = seconds!
         
@@ -232,13 +235,27 @@ REM         #initialSeconds! = #seconds!
         #timeDisplay! = #winTimeIndicator!.addStaticText(#timeRemainingString!)
         #timeDisplay!.addClass("time-indicator")
         
-REM         if (#hours! > 0) OR (#minutes!> 0) OR (#seconds!> 0) then Thread.sleep(1000)
+        if (#hours! = 0) AND (#minutes! = 0) AND (#seconds! = 0) then
+REM             'option to repeat timer or cancel and go back to start'
+            endOfTimerMessage! = msgbox("Repeat Timer?", 4 + 32 + 0 + 0, "Time's Up!")
+REM             i = msgbox("end of timer")
+        endif
+REM         
+        rem 'yes'
+        if (#endOfTimerMessage = 6) then
+REM             #hoursInput!.setValue(#initialHours!)
+REM             #minutesInput!.setValue(#initialMinutes!)
+REM             #secondsInput!.setValue(#initialSeconds!)
+            #displayTime(#initialHours!, #initialMinutes!, #initialSeconds!)
+        endif
         
+        rem 'no'
+        if (#endOfTimerMessage = 7) then
+            #eoj()
+        endif  
+     
         #calculateTime(#hours!, #minutes!, #seconds!)
-    methodend
-    
-    
-    
+    methodend 
        
     REM 'PAUSE TIMER METHOD'
     method public void onPause(BBjButtonPushEvent e!)
@@ -253,12 +270,18 @@ REM         if (#hours! > 0) OR (#minutes!> 0) OR (#seconds!> 0) then Thread.sle
     
     
     REM 'CANCEL TIMER METHOD'
-    method public void onCancel(BBjButtonPushEvent e!)
-        i = msgbox("you clicked cancel timer")
-    methodend
+REM     method public void onCancel(BBjButtonPushEvent e!)
+REM         #endOfJob()
+REM     methodend
 
     REM 'WINDOW CLOSE METHOD'
     method public void eoj()
+        REM 'set action when app ends - refresh page'
+        REM '.urlAction() - constructs a BBjBuiUrlCloseAction object to load a specified URL'
+        REM '.getUrl() - returns URL of current page'
+        refresh! = #webManager!.urlAction(#webManager!.getUrl())
+        #webManager!.setEndAction(refresh!)
+        release
     methodend
     
     
