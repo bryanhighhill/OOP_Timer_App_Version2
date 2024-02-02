@@ -53,13 +53,11 @@ class public TimerApp
         css! = java.nio.file.Files.readAllBytes(java.nio.file.Path.of(dsk("")+dir("")+"stylesheet.css"))
         #webManager!.injectStyle(css!, 0, "name=stylesheet_css")
     
-        REM 'set action when app ends - refresh page'
-        REM '.urlAction() - constructs a BBjBuiUrlCloseAction object to load a specified URL'
-        REM '.getUrl() - returns URL of current page'
+        REM 'Refresh page when app ends'
         refresh! = #webManager!.urlAction(#webManager!.getUrl())
         #webManager!.setEndAction(refresh!)
         
-        rem Create UI
+        rem 'Create UI'
         #sysgui! = BBjAPI().openSysGui("X0")
         #createAppUI()
         
@@ -130,15 +128,15 @@ class public TimerApp
         #minutes! = #minutesInput!.getValue()
         #seconds! = #secondsInput!.getValue()
 
-REM     'Initial time saved for repeat timer function at end of countdown'
-        #initialHours! = #hours!
-        #initialMinutes! = #minutes!
-        #initialSeconds! = #seconds!
-        
         REM 'Check to see if user inputted any time. In no, issue error. If yes, start timer'
         if (#hours! = 0) AND (#minutes! = 0) AND (#seconds! = 0) then
             #noInputMessage = msgbox("No Time Selected", 0 + 48, "Start Timer Error")
         else
+            REM 'Initial time saved for repeat timer function at end of countdown'
+            #initialHours! = #hours!
+            #initialMinutes! = #minutes!
+            #initialSeconds! = #seconds!
+        
             #startBtn!.setVisible(0)
             #pauseBtn!.setVisible(1)
             #cancelBtn!.setVisible(1)
@@ -151,6 +149,7 @@ REM     'Initial time saved for repeat timer function at end of countdown'
             #halfTimeString! = STR(#halfTime!) 
     
             REM 'UI for time display background & set css animation timing'
+REM         todo: create UI interface here - break setting CSS animations off into a seperate method that can be called if user chooses to repeat timer at end 
             #winClock! = #winMain!.addChildWindow("", $00108800$, #sysgui!.getAvailableContext())
             #winClock!.addClass("clock-container")
         
@@ -184,20 +183,15 @@ REM     'Initial time saved for repeat timer function at end of countdown'
             #winTimeIndicator!.addClass("time-indicator-window")
             
             rem 'Create one second timer'
-            BBjAPI().createTimer("oneSecondTimer", 1, #this!, "onTimerStart")
+            BBjAPI().createTimer("oneSecondTimer", 1, #this!, "displayTime")
             
-            #displayTime()
+            #displayTime(null())
         endif 
     methodend
     
     
-    method public void onTimerStart(BBjTimerEvent timerEvent!)
-        #displayTime()
-    methodend
-    
-    
     REM 'ADD CLOCK DISPLAY OVER TIMER DISPLAY BACKGROUND'
-    method public void displayTime()
+    method public void displayTime(BBjTimerEvent timerEvent!)
         REM 'Check if this is first time showing display or not. If no, remove previous display. If yes, move on'
         if (#initialCountDown! = 0) then 
             #timeDisplay!.setVisible(0)
@@ -216,17 +210,17 @@ REM     'Initial time saved for repeat timer function at end of countdown'
         
         REM 'When time is up, check if user wants to repeat timer' - SHOULD THIS BE ITS' OWN METHOD? ==============================
         if (#hours! = 0) AND (#minutes! = 0) AND (#seconds! = 0) then
+            rem 'Remove timer'
+            BBjAPI().removeTimer("oneSecondTimer")
             #endOfTimerMessage = msgbox("Repeat Timer?", 4 + 32 + 0 + 0, "Time's Up!")
         
-            rem 'Yes, repeat' - NEEDS TO CALL ONSTART METHOD, NOT CALCULATE TIME =============================
+            rem 'Yes, repeat'
             if (#endOfTimerMessage = 6) then
-REM             #hoursInput!.setValue(#initialHours!)
-REM             #minutesInput!.setValue(#initialMinutes!)
-REM             #secondsInput!.setValue(#initialSeconds!)
-REM             #initialCountDown! = 1
-                #hours! = #initialHours!
-                #minutes! = #initialMinutes!
-                #seconds!= #initialSeconds!
+                #hoursInput!.setValue(#initialHours!)
+                #minutesInput!.setValue(#initialMinutes!)
+                #secondsInput!.setValue(#initialSeconds!)
+                #initialCountDown! = 1
+                #onStart(null())
             endif
         
             rem 'No, don't repeat'
@@ -235,7 +229,7 @@ REM             #initialCountDown! = 1
             endif  
         endif
         
-        #calculateTime()      
+        if (#initialCountDown! = 0) then #calculateTime()      
     methodend 
     
     
