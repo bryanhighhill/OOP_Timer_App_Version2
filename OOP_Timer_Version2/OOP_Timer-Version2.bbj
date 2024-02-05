@@ -7,8 +7,6 @@ REM  * the original time input. If denied, the user is brought back to the begin
 REM  */
 
 
-
-
 declare auto TimerApp app!
 app! = new TimerApp()
 app!.run()
@@ -201,9 +199,7 @@ class public TimerApp
     
     
     REM ==============================='CREATE CSS VARIABLES AND INJECT STYLE TO CREATE ANIMATIONS'
-    method public void handleCSS()
-        BBjAPI().getWebManager().executeScript("console.log('in handleCss() with h/m/s = " + str(#hours!) + "/" + str(#minutes!) + "/" + str(#seconds!) + "');")
-        
+    method public void handleCSS() 
         REM 'Time variables used for clock css animations'
         #totalTimeInSec! = (#hours! *  3600) + (#minutes! * 60) + (#seconds!)
         #halfTime! = #totalTimeInSec! / 2
@@ -253,8 +249,6 @@ class public TimerApp
     
     REM ==============================='COUNTDOWN MATH' 
     method public void calculateTime(BBjTimerEvent timerEvent!)   
-        BBjAPI().getWebManager().executeScript("console.log('in calculateTime() with h/m/s = " + str(#hours!) + "/" + str(#minutes!) + "/" + str(#seconds!) + "');")
-
         if (#seconds! > -2) AND (#initialCountDown! = 0) then #seconds! = #seconds! - 1
         
         if (#hours! > 0) AND (#minutes! = 0) AND (#seconds! = -1) AND (#initialCountDown! = 0) then
