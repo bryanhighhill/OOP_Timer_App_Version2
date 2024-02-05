@@ -194,52 +194,26 @@ REM         todo: create UI interface here - break setting CSS animations off in
     
     REM 'ADD CLOCK DISPLAY OVER TIMER DISPLAY BACKGROUND'
     method public void displayTime()
-    
-     BBjAPI().getWebManager().executeScript("console.log('in displayTime() with h/m/s = " + str(#hours!) + "/" + str(#minutes!) + "/" + str(#seconds!) + "');")
+REM     BBjAPI().getWebManager().executeScript("console.log('in displayTime() with h/m/s = " + str(#hours!) + "/" + str(#minutes!) + "/" + str(#seconds!) + "');")
+              
         REM 'Check if this is first time showing display or not. If no, remove previous display. If yes, move on'
         if (#initialCountDown! = 0) then 
             #timeDisplay!.setVisible(0)
         else
             #initialCountDown! = 0
         endif
-
-        
-        REM 'Format time for clock display'
-REM         if (#seconds! = 60) AND (#minutes! = 0) then #timeRemainingString! = STR(#hours!: "00") + " : 01 : 00"
-REM         if (#seconds! = 60) AND (#minutes! > 0) AND (#hours! = 0) then #timeRemainingString! = STR(#minutes!: "00") + " : 00"
-REM         if (#seconds! = 60) AND (#minutes! = 0) AND (#hours! = 0) then #timeRemainingString! = "1 : 00"
         
         if (#hours! > 0) then #timeRemainingString! = STR(#hours!: "00") + " : " + STR(#minutes!: "00") + " : " + STR(#seconds!: "00")
         if (#hours! = 0) AND (#minutes! > 0) then #timeRemainingString! = STR(#minutes!: "00") + " : " + STR(#seconds!: "00")
-        if (#hours! = 0) AND (#minutes! = 0) AND (#seconds! > 0) then #timeRemainingString! = " : " + STR(#seconds!: "00")         
+        if (#hours! = 0) AND (#minutes! = 0) AND (#seconds! >= 0) then #timeRemainingString! = " : " + STR(#seconds!: "00")       
  
         REM 'Add formatted time to dom'
         #timeDisplay! = #winTimeIndicator!.addStaticText(#timeRemainingString!)
         #timeDisplay!.addClass("time-indicator")
         
-        REM 'When time is up, check if user wants to repeat timer' - SHOULD THIS BE ITS' OWN METHOD? ==============================
-        if (#hours! = 0) AND (#minutes! = 0) AND (#seconds! = 0) then
-            rem 'Remove timer'
-            BBjAPI().removeTimer("oneSecondTimer")
-            #endOfTimerMessage = msgbox("Repeat Timer?", 4 + 32 + 0 + 0, "Time's Up!")
-        
-            rem 'Yes, repeat'
-            if (#endOfTimerMessage = 6) then
-                #hoursInput!.setValue(#initialHours!)
-                #minutesInput!.setValue(#initialMinutes!)
-                #secondsInput!.setValue(#initialSeconds!)
-                #initialCountDown! = 1
-                #timeDisplay!.destroy()
-                #onStart(null())
-            endif
-        
-            rem 'No, don't repeat'
-            if (#endOfTimerMessage = 7) then
-                #eoj()
-            endif  
-        endif
-        
-REM         #calculateTime()      
+        REM 'When time is up'
+        if (#hours! = 0) AND (#minutes! = 0) AND (#seconds! = 0) then #onComplete()
+ 
     methodend 
     
     
@@ -264,7 +238,7 @@ REM         #calculateTime()
     methodend
   
        
-    REM 'PAUSE TIMER METHOD'
+    REM 'PAUSE TIMER'
     method public void onPause(BBjButtonPushEvent e!)
         rem 'Remove timer'
         BBjAPI().removeTimer("oneSecondTimer")
@@ -298,10 +272,35 @@ REM         #calculateTime()
     methodend
     
     
-REM 'CANCEL TIMER'
+    REM 'CANCEL TIMER'
     method public void onCancel(BBjButtonPushEvent e!)
         #eoj()
     methodend
+    
+    
+    REM 'TIMER COMPLETE'
+    method public void onComplete()
+        rem 'Remove timer'
+        BBjAPI().removeTimer("oneSecondTimer")
+        #endOfTimerMessage = msgbox("Repeat Timer?", 4 + 32 + 0 + 0, "Time's Up!")
+        
+        rem 'Yes, repeat'
+        if (#endOfTimerMessage = 6) then
+            #hoursInput!.setValue(#initialHours!)
+            #minutesInput!.setValue(#initialMinutes!)
+            #secondsInput!.setValue(#initialSeconds!)
+            #initialCountDown! = 1
+            #timeDisplay!.destroy()
+            #onStart(null())
+        endif
+        
+        rem 'No, don't repeat'
+        if (#endOfTimerMessage = 7) then
+            #eoj()
+        endif
+          
+    methodend
+
 
     REM 'WINDOW CLOSE METHOD'
     method public void eoj()
