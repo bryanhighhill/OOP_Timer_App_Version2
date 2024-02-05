@@ -68,21 +68,22 @@ class public TimerApp
     REM 'CREATE APP UI'
     method public void createAppUI()
         REM 'MAIN WINDOW'
-        title$ = "DWC Countdown Timer"
+        title$ = "OOP Countdown Timer"
         #winMain! = #sysgui!.addWindow(title$, $01111000$)
         #winMain!.addClass("winMain")
         
         REM 'CHILD WINDOWS'
         #winInput! = #winMain!.addChildWindow("", $00108800$, #sysgui!.getAvailableContext())
         #winInput!.addClass("winInput")
+        
         #winBtn! = #winMain!.addChildWindow("", $00108800$, #sysgui!.getAvailableContext())
         #winBtn!.addClass("winBtn")
         
-        REM 'WINDOWS FOR TIMER DISPLAY - Initial visibility = 0'
+        REM 'CHILD WINDOWS FOR TIMER DISPLAY - INITIAL VISIBILITY = 0'
         #winClock! = #winMain!.addChildWindow("", $00108800$, #sysgui!.getAvailableContext())
         #winClock!.addClass("clock-container")
         #winClock!.setVisible(0)
-        
+  
         #winTimerColorIndicator! = #winClock!.addChildWindow("", $00108800$, #sysgui!.getAvailableContext())
         #winTimerColorIndicator!.addClass("timer-color-indicator")
         #winTimerColorIndicator!.setVisible(0)
@@ -110,32 +111,30 @@ class public TimerApp
         #hoursInput! = #winInput!.addInputNSpinner($0020$, "##", 0, 23)
         #hoursInput!.addClass("input-spinner")
         #hoursInput!.setAttribute("label", "Hours")
+        
         #minutesInput! = #winInput!.addInputNSpinner($0020$, "##", 0, 59)
         #minutesInput!.addClass("input-spinner")
         #minutesInput!.setAttribute("label", "Minutes")
+        
         #secondsInput! = #winInput!.addInputNSpinner($0020$, "##", 0, 59)
         #secondsInput!.addClass("input-spinner")
         #secondsInput!.setAttribute("label", "Seconds") 
         
         REM 'BUTTONS'
-        rem 'start'
         #startBtn! = #winBtn!.addButton("Start")
         #startBtn!.setNoEdge(1)
         #startBtn!.addClass("start-button")
         
-        rem 'resume'
         #resumeBtn! = #winBtn!.addButton("Resume")
         #resumeBtn!.setNoEdge(1)
         #resumeBtn!.addClass("resume-button")
         #resumeBtn!.setVisible(0)
         
-        rem 'pause'
         #pauseBtn! = #winBtn!.addButton("Pause")
         #pauseBtn!.setNoEdge(1)
         #pauseBtn!.addClass("pause-button")
         #pauseBtn!.setVisible(0)
         
-        rem 'cancel'
         #cancelBtn! = #winBtn!.addButton("Cancel")
         #cancelBtn!.setNoEdge(1)
         #cancelBtn!.addClass("cancel-button")
@@ -170,7 +169,7 @@ class public TimerApp
     methodend
         
         
-    REM 'CREATE TIMER DISPLAY UI'
+    REM 'DISPLAY TIMER UI'
     method public void onValidation()
         REM 'handle button visibility'
         #startBtn!.setVisible(0)
@@ -193,7 +192,7 @@ class public TimerApp
     REM 'CREATE CSS VARIABLES AND INJECT STYLE TO CREATE ANIMATIONS'
     method public void handleCSS()
         BBjAPI().getWebManager().executeScript("console.log('in handleCss() with h/m/s = " + str(#hours!) + "/" + str(#minutes!) + "/" + str(#seconds!) + "');")
-    
+        
         REM 'Time variables used for clock css animations'
         #totalTimeInSec! = (#hours! *  3600) + (#minutes! * 60) + (#seconds!)
         #halfTime! = #totalTimeInSec! / 2
@@ -222,7 +221,7 @@ class public TimerApp
     method public void displayTime()             
         REM 'Check if this is first time showing display or not. If it is, set initial countdown to false. If it's not, remove previous display.'
         if (#initialCountDown! = 0) then 
-            #timeDisplay!.setVisible(0)
+            #timeDisplay!.destroy()
         else
             #initialCountDown! = 0
         endif
@@ -313,6 +312,15 @@ class public TimerApp
             #hoursInput!.setValue(#initialHours!)
             #minutesInput!.setValue(#initialMinutes!)
             #secondsInput!.setValue(#initialSeconds!)
+            
+            REM 'handle window visibility'
+            #winClock!.setVisible(0)
+            #winTimerColorIndicator!.setVisible(0)
+            #winClockRight!.setVisible(0)
+            #winClockLeft!.setVisible(0)
+            #winClockFace!.setVisible(0)
+            #winTimeIndicator!.setVisible(0)
+            
             #initialCountDown! = 1
             #timeDisplay!.setVisible(0)
             #onStart(null())
