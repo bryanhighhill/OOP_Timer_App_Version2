@@ -133,6 +133,7 @@ class public TimerApp
         #startBtn! = #winBtn!.addButton("Start")
         #startBtn!.setNoEdge(1)
         #startBtn!.addClass("start-button")
+REM         #startBtn!.setAttribute("theme", "success")
         
         #resumeBtn! = #winBtn!.addButton("Resume")
         #resumeBtn!.setNoEdge(1)
@@ -142,6 +143,7 @@ class public TimerApp
         #pauseBtn! = #winBtn!.addButton("Pause")
         #pauseBtn!.setNoEdge(1)
         #pauseBtn!.addClass("pause-button")
+REM         #pauseBtn!.setAttribute("theme", "danger")
         #pauseBtn!.setVisible(0)
         
         #cancelBtn! = #winBtn!.addButton("Cancel")
