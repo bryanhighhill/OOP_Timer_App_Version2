@@ -65,7 +65,7 @@ class public TimerApp
     methodend
     
     
-    REM 'CREATE MAIN APP UI'
+    REM 'CREATE APP UI'
     method public void createAppUI()
         REM 'MAIN WINDOW'
         title$ = "DWC Countdown Timer"
@@ -77,6 +77,34 @@ class public TimerApp
         #winInput!.addClass("winInput")
         #winBtn! = #winMain!.addChildWindow("", $00108800$, #sysgui!.getAvailableContext())
         #winBtn!.addClass("winBtn")
+        
+        REM 'WINDOWS FOR TIMER DISPLAY - Initial visibility = 0'
+        #winClock! = #winMain!.addChildWindow("", $00108800$, #sysgui!.getAvailableContext())
+        #winClock!.addClass("clock-container")
+        #winClock!.setVisible(0)
+        
+        #winTimerColorIndicator! = #winClock!.addChildWindow("", $00108800$, #sysgui!.getAvailableContext())
+        #winTimerColorIndicator!.addClass("timer-color-indicator")
+        #winTimerColorIndicator!.setVisible(0)
+       
+        #winClockRight! = #winTimerColorIndicator!.addChildWindow("", $00108800$, #sysgui!.getAvailableContext())
+        #winClockRight!.addClass("clock-right")
+        #winClockRight!.addClass("clock-rotate-end")
+        #winClockRight!.setVisible(0)
+        
+        #winClockLeft! = #winTimerColorIndicator!.addChildWindow("", $00108800$, #sysgui!.getAvailableContext())
+        #winClockLeft!.setBorderColor(#sysgui!.makeColor(250, 250, 250, 0))
+        #winClockLeft!.addClass("clock-left")
+        #winClockLeft!.addClass("clock-rotate-start")
+        #winClockLeft!.setVisible(0)
+        
+        #winClockFace! = #winTimerColorIndicator!.addChildWindow("", $00108800$, #sysgui!.getAvailableContext())
+        #winClockFace!.addClass("clock-face")  
+        #winClockFace!.setVisible(0)   
+           
+        #winTimeIndicator! = #winClockFace!.addChildWindow("", $00108800$, #sysgui!.getAvailableContext())
+        #winTimeIndicator!.addClass("time-indicator-window")
+        #winTimeIndicator!.setVisible(0)
         
         REM 'INPUTS'
         #hoursInput! = #winInput!.addInputNSpinner($0020$, "##", 0, 23)
@@ -122,13 +150,11 @@ class public TimerApp
     methodend
     
     
-    REM 'CREATE TIMER DISPLAY UI'
+    REM 'VALIDATE INPUTS AND SET INITIAL VARIABLES'
     method public void onStart(BBjButtonPushEvent e!)
         #hours! = #hoursInput!.getValue()
         #minutes! = #minutesInput!.getValue()
         #seconds! = #secondsInput!.getValue()
-        
-         BBjAPI().getWebManager().executeScript("console.log('in onStart() with h/m/s = " + str(#hours!) + "/" + str(#minutes!) + "/" + str(#seconds!) + "');")
 
         REM 'Check to see if user inputted any time. In no, issue error. If yes, start timer'
         if (#hours! = 0) AND (#minutes! = 0) AND (#seconds! = 0) then
@@ -138,71 +164,70 @@ class public TimerApp
             #initialHours! = #hours!
             #initialMinutes! = #minutes!
             #initialSeconds! = #seconds!
+            
+            #onValidation()
+        endif
+    methodend
         
-            #startBtn!.setVisible(0)
-            #pauseBtn!.setVisible(1)
-            #cancelBtn!.setVisible(1)
-            #winInput!.setVisible(0)
-            
-            REM 'Time variables used for clock css animations'
-            #totalTimeInSec! = (#hours! *  3600) + (#minutes! * 60) + (#seconds!)
-            #halfTime! = #totalTimeInSec! / 2
-            #totalTimeString! = STR(#totalTimeInSec!)
-            #halfTimeString! = STR(#halfTime!) 
-    
-            REM 'UI for time display background & set css animation timing'
-REM         todo: create UI interface here - break setting CSS animations off into a seperate method that can be called if user chooses to repeat timer at end 
-            #winClock! = #winMain!.addChildWindow("", $00108800$, #sysgui!.getAvailableContext())
-            #winClock!.addClass("clock-container")
         
-            #winTimerColorIndicator! = #winClock!.addChildWindow("", $00108800$, #sysgui!.getAvailableContext())
-            #winTimerColorIndicator!.addClass("timer-color-indicator")
+    REM 'CREATE TIMER DISPLAY UI'
+    method public void onValidation()
+        REM 'handle button visibility'
+        #startBtn!.setVisible(0)
+        #pauseBtn!.setVisible(1)
+        #cancelBtn!.setVisible(1)
+        #winInput!.setVisible(0)
         
-            #winClockRight! = #winTimerColorIndicator!.addChildWindow("", $00108800$, #sysgui!.getAvailableContext())
-            #winClockRight!.addClass("clock-right")
-            #winClockRight!.addClass("clock-rotate-end")
-            
-            #webManager! = BBjAPI().getWebManager()
-            #webManager!.injectStyle(".clock-rotate-end { "+
-:               "animation-delay: " + #halfTimeString! + "s !important;"+
-:               "animation-duration: " + #halfTimeString! + "s !important;"+
-:           "}")
-        
-            #winClockLeft! = #winTimerColorIndicator!.addChildWindow("", $00108800$, #sysgui!.getAvailableContext())
-            #winClockLeft!.setBorderColor(#sysgui!.makeColor(250, 250, 250, 0))
-            #winClockLeft!.addClass("clock-left")
-            #winClockLeft!.addClass("clock-rotate-start")
-            
-            #webManager!.injectStyle(".clock-rotate-start { "+
-:               "animation-delay: 0s, " + #halfTimeString! + "s !important;"+
-:               "animation-duration: " + #halfTimeString! + "s, 0s !important;"+
-:           "}")
-            
-            #winClockFace! = #winTimerColorIndicator!.addChildWindow("", $00108800$, #sysgui!.getAvailableContext())
-            #winClockFace!.addClass("clock-face")     
-            
-            #winTimeIndicator! = #winClockFace!.addChildWindow("", $00108800$, #sysgui!.getAvailableContext())
-            #winTimeIndicator!.addClass("time-indicator-window")
-            
-            rem 'Create one second timer'
-            BBjAPI().createTimer("oneSecondTimer", 1, #this!, "calculateTime")
-            
-            #calculateTime(null())
-        endif 
+        REM 'handle window visibility'
+        #winClock!.setVisible(1)
+        #winTimerColorIndicator!.setVisible(1)
+        #winClockRight!.setVisible(1)
+        #winClockLeft!.setVisible(1)
+        #winClockFace!.setVisible(1)
+        #winTimeIndicator!.setVisible(1)
+
+        #handleCSS()
     methodend
     
     
-    REM 'ADD CLOCK DISPLAY OVER TIMER DISPLAY BACKGROUND'
-    method public void displayTime()
-REM     BBjAPI().getWebManager().executeScript("console.log('in displayTime() with h/m/s = " + str(#hours!) + "/" + str(#minutes!) + "/" + str(#seconds!) + "');")
-              
-        REM 'Check if this is first time showing display or not. If no, remove previous display. If yes, move on'
+    REM 'CREATE CSS VARIABLES AND INJECT STYLE TO CREATE ANIMATIONS'
+    method public void handleCSS()
+        BBjAPI().getWebManager().executeScript("console.log('in handleCss() with h/m/s = " + str(#hours!) + "/" + str(#minutes!) + "/" + str(#seconds!) + "');")
+    
+        REM 'Time variables used for clock css animations'
+        #totalTimeInSec! = (#hours! *  3600) + (#minutes! * 60) + (#seconds!)
+        #halfTime! = #totalTimeInSec! / 2
+        #totalTimeString! = STR(#totalTimeInSec!)
+        #halfTimeString! = STR(#halfTime!) 
+    
+        #webManager! = BBjAPI().getWebManager()
+        #webManager!.injectStyle(".clock-rotate-end { "+
+:           "animation-delay: " + #halfTimeString! + "s !important;"+
+:           "animation-duration: " + #halfTimeString! + "s !important;"+
+:       "}")
+
+        #webManager!.injectStyle(".clock-rotate-start { "+
+:           "animation-delay: 0s, " + #halfTimeString! + "s !important;"+
+:           "animation-duration: " + #halfTimeString! + "s, 0s !important;"+
+:       "}")
+
+        rem 'Create one second timer'
+        BBjAPI().createTimer("oneSecondTimer", 1, #this!, "calculateTime")
+        
+        #calculateTime(null())
+    methodend
+    
+    
+    REM 'DISPLAY TIME OVER BACKGROUND UI'
+    method public void displayTime()             
+        REM 'Check if this is first time showing display or not. If it is, set initial countdown to false. If it's not, remove previous display.'
         if (#initialCountDown! = 0) then 
             #timeDisplay!.setVisible(0)
         else
             #initialCountDown! = 0
         endif
         
+        REM 'Format time as string'
         if (#hours! > 0) then #timeRemainingString! = STR(#hours!: "00") + " : " + STR(#minutes!: "00") + " : " + STR(#seconds!: "00")
         if (#hours! = 0) AND (#minutes! > 0) then #timeRemainingString! = STR(#minutes!: "00") + " : " + STR(#seconds!: "00")
         if (#hours! = 0) AND (#minutes! = 0) AND (#seconds! >= 0) then #timeRemainingString! = " : " + STR(#seconds!: "00")       
@@ -213,7 +238,6 @@ REM     BBjAPI().getWebManager().executeScript("console.log('in displayTime() wi
         
         REM 'When time is up'
         if (#hours! = 0) AND (#minutes! = 0) AND (#seconds! = 0) then #onComplete()
- 
     methodend 
     
     
@@ -290,7 +314,7 @@ REM     BBjAPI().getWebManager().executeScript("console.log('in displayTime() wi
             #minutesInput!.setValue(#initialMinutes!)
             #secondsInput!.setValue(#initialSeconds!)
             #initialCountDown! = 1
-            #timeDisplay!.destroy()
+            #timeDisplay!.setVisible(0)
             #onStart(null())
         endif
         
@@ -298,7 +322,6 @@ REM     BBjAPI().getWebManager().executeScript("console.log('in displayTime() wi
         if (#endOfTimerMessage = 7) then
             #eoj()
         endif
-          
     methodend
 
 
@@ -307,9 +330,4 @@ REM     BBjAPI().getWebManager().executeScript("console.log('in displayTime() wi
         release
     methodend
     
-
-    classend
-    
-    
-    use java.lang.Thread
-    
+classend 
