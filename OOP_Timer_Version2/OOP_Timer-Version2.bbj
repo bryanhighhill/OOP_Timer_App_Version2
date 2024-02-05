@@ -1,3 +1,14 @@
+REM /**
+REM  * This app is a countdown timer created for the BASIS DWC, using BBj and CSS & utilizing the OOP programming model
+REM  *It accepts user input for hours, minutes, and seconds. Upon pressing start, the UI will display a countdown from the
+REM  * user inputted vallues to 00:00:00, by the second.
+REM  * The user is then asked if they'd like to repeat timer or not. If repeat is confirmed the timer will start over with
+REM  * the original time input. If denied, the user is brought back to the beginning page of the app
+REM  */
+
+
+
+
 declare auto TimerApp app!
 app! = new TimerApp()
 app!.run()
@@ -47,7 +58,7 @@ class public TimerApp
     field protected BBjNumber           initialCountDown! = 1
   
     
-    REM 'RUN TIMER APP'
+    REM ==============================='RUN TIMER APP'
     method public void run()
         #webManager! = BBjAPI().getWebManager()
         css! = java.nio.file.Files.readAllBytes(java.nio.file.Path.of(dsk("")+dir("")+"stylesheet.css"))
@@ -65,7 +76,7 @@ class public TimerApp
     methodend
     
     
-    REM 'CREATE APP UI'
+    REM ==============================='CREATE APP UI'
     method public void createAppUI()
         REM 'MAIN WINDOW'
         title$ = "OOP Countdown Timer"
@@ -149,7 +160,7 @@ class public TimerApp
     methodend
     
     
-    REM 'VALIDATE INPUTS AND SET INITIAL VARIABLES'
+    REM ==============================='VALIDATE INPUTS AND SET INITIAL VARIABLES'
     method public void onStart(BBjButtonPushEvent e!)
         #hours! = #hoursInput!.getValue()
         #minutes! = #minutesInput!.getValue()
@@ -169,7 +180,7 @@ class public TimerApp
     methodend
         
         
-    REM 'DISPLAY TIMER UI'
+    REM ==============================='DISPLAY TIMER UI'
     method public void onValidation()
         REM 'handle button visibility'
         #startBtn!.setVisible(0)
@@ -189,7 +200,7 @@ class public TimerApp
     methodend
     
     
-    REM 'CREATE CSS VARIABLES AND INJECT STYLE TO CREATE ANIMATIONS'
+    REM ==============================='CREATE CSS VARIABLES AND INJECT STYLE TO CREATE ANIMATIONS'
     method public void handleCSS()
         BBjAPI().getWebManager().executeScript("console.log('in handleCss() with h/m/s = " + str(#hours!) + "/" + str(#minutes!) + "/" + str(#seconds!) + "');")
         
@@ -217,7 +228,7 @@ class public TimerApp
     methodend
     
     
-    REM 'DISPLAY TIME OVER BACKGROUND UI'
+    REM ==============================='DISPLAY TIME OVER BACKGROUND UI'
     method public void displayTime()             
         REM 'Check if this is first time showing display or not. If it is, set initial countdown to false. If it's not, remove previous display.'
         if (#initialCountDown! = 0) then 
@@ -240,7 +251,7 @@ class public TimerApp
     methodend 
     
     
-    REM 'COUNTDOWN MATH' 
+    REM ==============================='COUNTDOWN MATH' 
     method public void calculateTime(BBjTimerEvent timerEvent!)   
         BBjAPI().getWebManager().executeScript("console.log('in calculateTime() with h/m/s = " + str(#hours!) + "/" + str(#minutes!) + "/" + str(#seconds!) + "');")
 
@@ -252,7 +263,7 @@ class public TimerApp
             #seconds! = 59
         endif
         
-        if (#seconds! = -1) AND (#minutes! > -1) AND (#initialCountDown! = 0) then 
+        if (#seconds! = -1) AND (#minutes! > 0) AND (#initialCountDown! = 0) then 
             #minutes! = #minutes! - 1
             #seconds! = 59
         endif
@@ -261,7 +272,7 @@ class public TimerApp
     methodend
   
        
-    REM 'PAUSE TIMER'
+    REM ==============================='PAUSE TIMER'
     method public void onPause(BBjButtonPushEvent e!)
         rem 'Remove timer'
         BBjAPI().removeTimer("oneSecondTimer")
@@ -278,7 +289,7 @@ class public TimerApp
     methodend
 
 
-    REM 'RESUME TIMER METHOD'
+    REM ==============================='RESUME TIMER METHOD'
     method public void onResume(BBjButtonPushEvent e!)
         rem 'Add one second timer'
         BBjAPI().createTimer("oneSecondTimer", 1, #this!, "calculateTime")
@@ -295,13 +306,13 @@ class public TimerApp
     methodend
     
     
-    REM 'CANCEL TIMER'
+    REM ==============================='CANCEL TIMER'
     method public void onCancel(BBjButtonPushEvent e!)
         #eoj()
     methodend
     
     
-    REM 'TIMER COMPLETE'
+    REM ==============================='TIMER COMPLETE'
     method public void onComplete()
         rem 'Remove timer'
         BBjAPI().removeTimer("oneSecondTimer")
@@ -333,9 +344,8 @@ class public TimerApp
     methodend
 
 
-    REM 'WINDOW CLOSE METHOD'
+    REM ==============================='WINDOW CLOSE METHOD'
     method public void eoj()
         release
     methodend
-    
 classend 
