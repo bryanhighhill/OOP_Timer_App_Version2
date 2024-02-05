@@ -202,7 +202,7 @@ REM         todo: create UI interface here - break setting CSS animations off in
         else
             #initialCountDown! = 0
         endif
-        
+
         
         REM 'Format time for clock display'
 REM         if (#seconds! = 60) AND (#minutes! = 0) then #timeRemainingString! = STR(#hours!: "00") + " : 01 : 00"
@@ -246,20 +246,17 @@ REM         #calculateTime()
     REM 'COUNTDOWN MATH' 
     method public void calculateTime(BBjTimerEvent timerEvent!)   
         BBjAPI().getWebManager().executeScript("console.log('in calculateTime() with h/m/s = " + str(#hours!) + "/" + str(#minutes!) + "/" + str(#seconds!) + "');")
-       
-        REM 'If there are seconds, subtract one from total seconds'
-        if (#seconds! > 0) AND (#initialCountDown! = 0) then #seconds! = #seconds! - 1
+
+        if (#seconds! > -2) AND (#initialCountDown! = 0) then #seconds! = #seconds! - 1
         
-        REM 'If there are no seconds but there are minutes, subtract one from total minutes and set seconds to 59'
-        if (#seconds! = 0) AND (#minutes! > 0) AND (#initialCountDown! = 0) then 
-            #minutes! = #minutes! - 1
+        if (#hours! > 0) AND (#minutes! = 0) AND (#seconds! = -1) AND (#initialCountDown! = 0) then
+            #hours! = #hours! - 1
+            #minutes! = 59
             #seconds! = 59
         endif
         
-        REM 'If there are no seconds & no minutes, but there are hours, subtract one from total hours, set minutes & seconds to 59'
-        if (#seconds! = 0) AND (#minutes! = 0) AND (#hours! > 0) AND (#initialCountDown! = 0) then
-            #hours! = #hours! - 1
-            #minutes! = 59
+        if (#seconds! = -1) AND (#minutes! > -1) AND (#initialCountDown! = 0) then 
+            #minutes! = #minutes! - 1
             #seconds! = 59
         endif
         
